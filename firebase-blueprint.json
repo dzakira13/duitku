@@ -1,0 +1,271 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile, contact details, preferences, and account settings for DuitKu.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase user UID."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User's full or preferred display name."
+        },
+        "bio": {
+          "type": "string",
+          "description": "Short personal bio or financial goal tagline."
+        },
+        "avatarData": {
+          "type": "string",
+          "description": "Profile picture URL, preset key, or compact JPEG data URI."
+        },
+        "email": {
+          "type": "string",
+          "description": "Primary contact email address."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact phone number."
+        },
+        "location": {
+          "type": "string",
+          "description": "City or address for profile contact details."
+        },
+        "currencyCode": {
+          "type": "string",
+          "enum": ["IDR", "USD", "SGD", "MYR", "EUR"],
+          "description": "Preferred display currency code."
+        },
+        "themeMode": {
+          "type": "string",
+          "enum": ["SYSTEM", "LIGHT", "DARK"],
+          "description": "App appearance preference."
+        },
+        "budgetCycleDay": {
+          "type": "integer",
+          "description": "Day of month when budget cycle starts (1-28)."
+        },
+        "budgetAlertPercent": {
+          "type": "integer",
+          "description": "Spending percentage threshold for budget warning (50-100)."
+        },
+        "privacyBalanceHidden": {
+          "type": "boolean",
+          "description": "Whether balances are masked by default."
+        },
+        "budgetAlertsEnabled": {
+          "type": "boolean",
+          "description": "Whether budget threshold alerts are enabled."
+        },
+        "weeklyDigestEnabled": {
+          "type": "boolean",
+          "description": "Whether weekly spending digest preference is enabled."
+        },
+        "profileSetupDone": {
+          "type": "boolean",
+          "description": "Whether the user has completed initial profile setup."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "email",
+        "currencyCode",
+        "themeMode",
+        "budgetCycleDay",
+        "budgetAlertPercent",
+        "privacyBalanceHidden",
+        "budgetAlertsEnabled",
+        "weeklyDigestEnabled",
+        "profileSetupDone",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Wallet": {
+      "title": "Wallet",
+      "description": "A user financial account or wallet such as Cash, Bank, or E-Wallet.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Wallet name."
+        },
+        "walletType": {
+          "type": "string",
+          "enum": ["CASH", "BANK", "EWALLET", "SAVINGS", "INVESTMENT"],
+          "description": "Category of wallet."
+        },
+        "balance": {
+          "type": "number",
+          "description": "Current wallet balance."
+        },
+        "colorKey": {
+          "type": "string",
+          "enum": ["EMERALD", "GOLD", "OCEAN", "SLATE", "CORAL"],
+          "description": "Card accent color token."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "walletType",
+        "balance",
+        "colorKey",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MoneyTransaction": {
+      "title": "MoneyTransaction",
+      "description": "An income or expense transaction logged by the user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID."
+        },
+        "title": {
+          "type": "string",
+          "description": "Merchant or transaction title."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Positive transaction amount."
+        },
+        "transactionType": {
+          "type": "string",
+          "enum": ["INCOME", "EXPENSE"],
+          "description": "Income or Expense."
+        },
+        "category": {
+          "type": "string",
+          "description": "Transaction category name."
+        },
+        "walletId": {
+          "type": "string",
+          "description": "Associated wallet document ID."
+        },
+        "walletName": {
+          "type": "string",
+          "description": "Denormalized wallet display name."
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional note."
+        },
+        "occurredAtMillis": {
+          "type": "integer",
+          "description": "Transaction date/time in epoch milliseconds."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "amount",
+        "transactionType",
+        "category",
+        "walletId",
+        "walletName",
+        "occurredAtMillis",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CategoryBudget": {
+      "title": "CategoryBudget",
+      "description": "Monthly spending budget cap for a specific expense category.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase UID."
+        },
+        "category": {
+          "type": "string",
+          "description": "Expense category name."
+        },
+        "monthlyLimit": {
+          "type": "number",
+          "description": "Positive monthly spending limit."
+        },
+        "monthKey": {
+          "type": "string",
+          "description": "Month identifier YYYY-MM."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "category",
+        "monthlyLimit",
+        "monthKey",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile, contact info, preferences, and account settings."
+    },
+    "/users/{userId}/wallets/{walletId}": {
+      "schema": { "$ref": "#/entities/Wallet" },
+      "description": "User-owned financial wallets and accounts."
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/MoneyTransaction" },
+      "description": "User-owned income and expense ledger."
+    },
+    "/users/{userId}/budgets/{budgetId}": {
+      "schema": { "$ref": "#/entities/CategoryBudget" },
+      "description": "User-owned monthly category budgets."
+    }
+  }
+}

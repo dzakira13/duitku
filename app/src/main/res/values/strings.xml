@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">DuitKu</string>
+    <string name="tagline_auth">Track every Rupiah, wallet, and monthly goal in one calm place.</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_transactions">Activity</string>
+    <string name="nav_analytics">Budgets</string>
+    <string name="nav_profile">Profile</string>
+    <string name="total_balance">Total Net Balance</string>
+    <string name="monthly_income">Income</string>
+    <string name="monthly_expense">Expense</string>
+    <string name="add_income">Add Income</string>
+    <string name="add_expense">Add Expense</string>
+    <string name="wallets_title">My Wallets</string>
+    <string name="add_wallet">Add Wallet</string>
+    <string name="recent_transactions">Recent Activity</string>
+    <string name="see_all">See all</string>
+    <string name="complete_profile_title">Finish setting up your DuitKu profile</string>
+    <string name="complete_profile_subtitle">Add your photo, phone, and currency preferences.</string>
+    <string name="setup_now">Set up</string>
+    <string name="profile_title">Profile &amp; Settings</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="save_profile">Save Profile</string>
+    <string name="contact_info_section">Contact Information</string>
+    <string name="preferences_section">User Preferences</string>
+    <string name="account_settings_section">Account Settings</string>
+    <string name="choose_photo">Choose Photo</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="delete_account_data">Delete Profile &amp; Data</string>
+    <string name="export_summary">Export Summary</string>
+    <string name="reset_financial_data">Reset Financial Data</string>
+</resources>

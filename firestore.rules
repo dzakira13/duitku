@@ -1,0 +1,195 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string &&
+             data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 60 &&
+             (!('bio' in data) || (data.bio is string && data.bio.size() <= 160)) &&
+             (!('avatarData' in data) || (data.avatarData is string && data.avatarData.size() <= 80000)) &&
+             data.email is string && data.email.size() <= 120 &&
+             (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
+             (!('location' in data) || (data.location is string && data.location.size() <= 100)) &&
+             data.currencyCode in ['IDR', 'USD', 'SGD', 'MYR', 'EUR'] &&
+             data.themeMode in ['SYSTEM', 'LIGHT', 'DARK'] &&
+             data.budgetCycleDay is int && data.budgetCycleDay >= 1 && data.budgetCycleDay <= 28 &&
+             data.budgetAlertPercent is int && data.budgetAlertPercent >= 50 && data.budgetAlertPercent <= 100 &&
+             data.privacyBalanceHidden is bool &&
+             data.budgetAlertsEnabled is bool &&
+             data.weeklyDigestEnabled is bool &&
+             data.profileSetupDone is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidWallet(data) {
+      return data.userId is string &&
+             data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 40 &&
+             data.walletType in ['CASH', 'BANK', 'EWALLET', 'SAVINGS', 'INVESTMENT'] &&
+             data.balance is number && data.balance >= -999999999999 && data.balance <= 999999999999 &&
+             data.colorKey in ['EMERALD', 'GOLD', 'OCEAN', 'SLATE', 'CORAL'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidTransaction(data) {
+      return data.userId is string &&
+             data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 80 &&
+             data.amount is number && data.amount > 0 && data.amount <= 999999999999 &&
+             data.transactionType in ['INCOME', 'EXPENSE'] &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 40 &&
+             data.walletId is string && data.walletId.size() >= 1 && data.walletId.size() <= 128 &&
+             data.walletName is string && data.walletName.size() >= 1 && data.walletName.size() <= 40 &&
+             (!('note' in data) || (data.note is string && data.note.size() <= 200)) &&
+             data.occurredAtMillis is int && data.occurredAtMillis > 0 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidBudget(data) {
+      return data.userId is string &&
+             data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.category is string && data.category.size() >= 1 && data.category.size() <= 40 &&
+             data.monthlyLimit is number && data.monthlyLimit > 0 && data.monthlyLimit <= 999999999999 &&
+             data.monthKey is string && data.monthKey.size() == 7 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isOwner(userId) && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isSignedIn() &&
+                       isOwner(userId) &&
+                       isValidId(userId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'email', 'currencyCode', 'themeMode',
+                         'budgetCycleDay', 'budgetAlertPercent', 'privacyBalanceHidden',
+                         'budgetAlertsEnabled', 'weeklyDigestEnabled', 'profileSetupDone',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'bio', 'avatarData', 'email', 'phone',
+                         'location', 'currencyCode', 'themeMode', 'budgetCycleDay',
+                         'budgetAlertPercent', 'privacyBalanceHidden', 'budgetAlertsEnabled',
+                         'weeklyDigestEnabled', 'profileSetupDone', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'bio', 'avatarData', 'email', 'phone', 'location',
+                         'currencyCode', 'themeMode', 'budgetCycleDay', 'budgetAlertPercent',
+                         'privacyBalanceHidden', 'budgetAlertsEnabled', 'weeklyDigestEnabled',
+                         'profileSetupDone', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isOwner(userId) && isValidId(userId);
+
+      match /wallets/{walletId} {
+        allow list: if isSignedIn() && isOwner(userId);
+        allow get: if isSignedIn() && isOwner(userId) && isValidId(walletId);
+
+        allow create: if isSignedIn() &&
+                         isOwner(userId) &&
+                         isValidId(walletId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'name', 'walletType', 'balance', 'colorKey', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'name', 'walletType', 'balance', 'colorKey', 'createdAt', 'updatedAt']) &&
+                         isValidWallet(incoming());
+
+        allow update: if isSignedIn() &&
+                         isOwner(userId) &&
+                         isValidId(walletId) &&
+                         isValidWallet(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'walletType', 'balance', 'colorKey', 'updatedAt']);
+
+        allow delete: if isSignedIn() && isOwner(userId) && isValidId(walletId);
+      }
+
+      match /transactions/{transactionId} {
+        allow list: if isSignedIn() && isOwner(userId);
+        allow get: if isSignedIn() && isOwner(userId) && isValidId(transactionId);
+
+        allow create: if isSignedIn() &&
+                         isOwner(userId) &&
+                         isValidId(transactionId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'title', 'amount', 'transactionType', 'category', 'walletId', 'walletName', 'occurredAtMillis', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'title', 'amount', 'transactionType', 'category', 'walletId', 'walletName', 'note', 'occurredAtMillis', 'createdAt', 'updatedAt']) &&
+                         isValidTransaction(incoming());
+
+        allow update: if isSignedIn() &&
+                         isOwner(userId) &&
+                         isValidId(transactionId) &&
+                         isValidTransaction(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['title', 'amount', 'transactionType', 'category', 'walletId', 'walletName', 'note', 'occurredAtMillis', 'updatedAt']);
+
+        allow delete: if isSignedIn() && isOwner(userId) && isValidId(transactionId);
+      }
+
+      match /budgets/{budgetId} {
+        allow list: if isSignedIn() && isOwner(userId);
+        allow get: if isSignedIn() && isOwner(userId) && isValidId(budgetId);
+
+        allow create: if isSignedIn() &&
+                         isOwner(userId) &&
+                         isValidId(budgetId) &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'category', 'monthlyLimit', 'monthKey', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'category', 'monthlyLimit', 'monthKey', 'createdAt', 'updatedAt']) &&
+                         isValidBudget(incoming());
+
+        allow update: if isSignedIn() &&
+                         isOwner(userId) &&
+                         isValidId(budgetId) &&
+                         isValidBudget(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['category', 'monthlyLimit', 'monthKey', 'updatedAt']);
+
+        allow delete: if isSignedIn() && isOwner(userId) && isValidId(budgetId);
+      }
+    }
+  }
+}
